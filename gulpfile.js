@@ -204,6 +204,6 @@ gulp.task('project-watch', function() {
     gulp.watch(project_src + 'fonts/**/*.{ttf,woff,eot}', ['project-dev-fonts']);
     gulp.watch(project_src + 'img/**/*.{jpg,png,gif}', ['project-dev-img']);
     gulp.watch(project_src + 'js/**/*.js', ['project-dev-js']);
-    gulp.watch(project_src + 'less/main.less', ['project-dev-less']);
+    gulp.watch(project_src + 'less/*.less', ['project-dev-less']);
     gulp.watch(project_src + 'video/**/*.{mp4,webm,ogg}', ['project-dev-video']);
 });
