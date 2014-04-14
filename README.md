@@ -1,6 +1,6 @@
 # Readme
 
-## Установка nodejs, gulp и bower
+## Установка nodejs и gulp
 http://nodejs.org/  
 npm install -g gulp  
 
