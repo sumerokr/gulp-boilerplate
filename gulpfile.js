@@ -8,6 +8,7 @@ var minifyCSS = require('gulp-minify-css');
 var rename = require('gulp-rename');
 var livereload = require('gulp-livereload');
 var changed = require('gulp-changed');
+var prefix = require('gulp-autoprefixer');
 
 
 // флаг для livereload. Принимает true при запуске watch задачи
@@ -76,6 +77,7 @@ gulp.task('layout-dev-js', function() {
 gulp.task('layout-dev-less', function() {
     var _res = gulp.src(dev_src + 'less/main.less')
         .pipe(less())
+        .pipe(prefix(["last 2 version", "> 1%", "ie 8"]))
         .pipe(gulp.dest(dev_staticfiles + 'css/'));
 
     if (isWatch) _res.pipe(livereload());
@@ -111,6 +113,7 @@ gulp.task('project-dev-js', function() {
 gulp.task('project-dev-less', function() {
     var _res = gulp.src(project_src + 'less/main.less')
         .pipe(less())
+        .pipe(prefix(["last 2 version", "> 1%", "ie 8"]))
         .pipe(gulp.dest(project_staticfiles + 'css/'));
 
     if (isWatch) _res.pipe(livereload());
@@ -145,6 +148,7 @@ gulp.task('project-release-js', function() {
 gulp.task('project-release-less', function() {
     gulp.src(project_src + 'less/main.less')
         .pipe(less())
+        .pipe(prefix(["last 2 version", "> 1%", "ie 8"]))
         .pipe(minifyCSS({keepSpecialComments: 0}))
         .pipe(rename('main.min.css'))
         .pipe(gulp.dest(project_staticfiles + 'css/'));
