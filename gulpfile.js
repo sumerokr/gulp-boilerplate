@@ -25,6 +25,7 @@ var project_staticfiles = './project/staticfiles/';
 // js файлы для минификации при релизе проекта
 var jsFiles = [
     project_src + 'js/vendor/jquery-1.11.0.js',
+    project_src + 'js/vendor/holder.js',
     project_src + 'js/main.js'
 ];
 
@@ -32,8 +33,8 @@ var jsFiles = [
 // очистка целевых файлов dev-а
 gulp.task('layout-dev-clean', function() {
     gulp.src([
-            './layout/dev/staticfiles/**/*.*',
-            '!./layout/dev/staticfiles/_src/**/*.*'
+            dev_staticfiles + '**/*.*',
+            '!' + dev_src + '**/*.*'
         ], {read: false})
         .pipe(clean());
 });
@@ -41,8 +42,8 @@ gulp.task('layout-dev-clean', function() {
 // очистка целевых файлов проекта
 gulp.task('project-dev-clean', function() {
     gulp.src([
-            './project/staticfiles/**/*.*',
-            '!./project/staticfiles/_src/**/*.*'
+            project_staticfiles + '**/*.*',
+            '!' + project_src + '**/*.*'
         ], {read: false})
         .pipe(clean());
 });
@@ -134,7 +135,7 @@ gulp.task('project-release-fonts', function() {
 
 gulp.task('project-release-img', function() {
     gulp.src(project_src + 'img/**/*.{jpg,png,gif}')
-        .pipe(imagemin({optimizationLevel: 2, interlaced: true, /*pngquant: true, */progressive: true}))
+        .pipe(imagemin({optimizationLevel: 2, interlaced: true, pngquant: true, progressive: true}))
         .pipe(gulp.dest(project_staticfiles + 'img/'));
 });
 
