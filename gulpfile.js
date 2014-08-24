@@ -13,7 +13,6 @@ var uglify = require('gulp-uglify');
 var streamify = require('gulp-streamify');
 var imagemin = require('gulp-imagemin');
 var changed = require('gulp-changed');
-var debug = require('gulp-debug');
 var del = require('del');
 
 var statuses = {
