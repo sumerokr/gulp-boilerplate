@@ -14,6 +14,8 @@ var streamify = require('gulp-streamify');
 var imagemin = require('gulp-imagemin');
 var changed = require('gulp-changed');
 var del = require('del');
+var nunjucks = require('gulp-nunjucks');
+var nunjucksRender = require('gulp-nunjucks-render');
 
 var statuses = {
     isRelease: false,
@@ -21,30 +23,45 @@ var statuses = {
 };
 
 var paths = {
-    layout: './layout/',
-    src: './layout/static/_src/',
-    dest: './layout/static/'
+    app: './app/',
+    appStatic: './app/static/',
+    dist: './dist/',
+    distStatic: './dist/static/'
 };
 
+gulp.task('html', function () {
+    gulp.src(paths.app + '**/*.html')
+        .pipe(nunjucks())
+        .pipe(gulp.dest(paths.dist))
+        .pipe(gulpif(statuses.isWatch, reload({ stream: true })));
+});
+
+gulp.task('nunj', function () {
+    gulp.src(paths.app + 'child.html')
+        .pipe(nunjucksRender())
+        .pipe(gulp.dest(paths.dist))
+        .pipe(gulpif(statuses.isWatch, reload({ stream: true })));
+});
+
 gulp.task('fonts', function () {
-    return gulp.src(paths.src + 'fonts/**/*.*')
-        .pipe(changed(paths.dest + 'fonts/'))
-        .pipe(gulp.dest(paths.dest + 'fonts/'));
+    return gulp.src(paths.appStatic + 'fonts/**/*.*')
+        .pipe(changed(paths.distStatic + 'fonts/'))
+        .pipe(gulp.dest(paths.distStatic + 'fonts/'));
 });
 
 gulp.task('images', function () {
     var devPipe = lazypipe()
-        .pipe(changed, paths.dest + 'images/')
-        .pipe(gulp.dest, paths.dest + 'images/')
+        .pipe(changed, paths.distStatic + 'images/')
+        .pipe(gulp.dest, paths.distStatic + 'images/')
         .pipe(function () {
             return gulpif(statuses.isWatch, reload({ stream: true }));
         });
 
     var releasePipe = lazypipe()
         .pipe(imagemin, { optimizationLevel: 3, progressive: true, interlaced: true })
-        .pipe(gulp.dest, paths.dest + 'images/');
+        .pipe(gulp.dest, paths.distStatic + 'images/');
 
-    return gulp.src(paths.src + 'images/**/*.*')
+    return gulp.src(paths.appStatic + 'images/**/*.*')
         .pipe(gulpif(statuses.isRelease, releasePipe(), devPipe()));        
 });
 
@@ -57,12 +74,12 @@ gulp.task('scripts', function () {
     var releasePipe = lazypipe()
         .pipe(streamify, uglify())
         .pipe(rename, { suffix: '.min' })
-        .pipe(gulp.dest, paths.dest + 'scripts/');
+        .pipe(gulp.dest, paths.distStatic + 'scripts/');
 
-    return browserify(paths.src + 'scripts/main.js')
+    return browserify(paths.appStatic + 'scripts/main.js')
         .bundle()
         .pipe(source('main.js'))
-        .pipe(gulp.dest(paths.dest + 'scripts/'))
+        .pipe(gulp.dest(paths.distStatic + 'scripts/'))
         .pipe(gulpif(statuses.isRelease, releasePipe(), devPipe()));
 });
 
@@ -75,42 +92,36 @@ gulp.task('styles', function () {
     var releasePipe = lazypipe()
         .pipe(minifyCSS)
         .pipe(rename, { suffix: '.min' })
-        .pipe(gulp.dest, paths.dest + 'styles/');
+        .pipe(gulp.dest, paths.distStatic + 'styles/');
 
-    return gulp.src(paths.src + 'styles/main.less')
+    return gulp.src(paths.appStatic + 'styles/main.less')
         .pipe(less())
         // опция отключения каскадного форматирования не работает в версии 0.0.8
         // issue - https://github.com/Metrime/gulp-autoprefixer/issues/25
         .pipe(autoprefixer({ cascade: false }))
-        .pipe(gulp.dest(paths.dest + 'styles/'))
+        .pipe(gulp.dest(paths.distStatic + 'styles/'))
         .pipe(gulpif(statuses.isRelease, releasePipe(), devPipe()));
 });
 
 gulp.task('videos', function () {
-    return gulp.src(paths.src + 'videos/**/*.*')
-        .pipe(changed(paths.dest + 'videos/'))
-        .pipe(gulp.dest(paths.dest + 'videos/'));
+    return gulp.src(paths.appStatic + 'videos/**/*.*')
+        .pipe(changed(paths.distStatic + 'videos/'))
+        .pipe(gulp.dest(paths.distStatic + 'videos/'));
 });
 
 gulp.task('clean', function () {
-    del.sync([
-        paths.dest + 'fonts/',
-        paths.dest + 'images/',
-        paths.dest + 'scripts/',
-        paths.dest + 'styles/',
-        paths.dest + 'videos/'
-    ]);
+    del.sync([paths.dist]);
 });
 
 gulp.task('watch', ['default', 'browser-sync'], function () {
-    gulp.watch(paths.layout + '**/*.html', reload);
-    gulp.watch(paths.src + 'styles/**/*.less', ['styles']);
-    gulp.watch(paths.src + 'scripts/**/*.js', ['scripts']);
-    gulp.watch(paths.src + 'images/**/*.*', ['images']);
+    gulp.watch(paths.app + '**/*.html', ['html']);
+    gulp.watch(paths.appStatic + 'styles/**/*.less', ['styles']);
+    gulp.watch(paths.appStatic + 'scripts/**/*.js', ['scripts']);
+    gulp.watch(paths.appStatic + 'images/**/*.*', ['images']);
 });
 
 gulp.task('browser-sync', ['default'], function () {
-    browserSync({ server: { baseDir: paths.layout } });
+    browserSync({ server: { baseDir: paths.app } });
     statuses.isWatch = true;
 });
 
@@ -118,6 +129,6 @@ gulp.task('set-release-state', function () {
     statuses.isRelease = true;
 });
 
-gulp.task('default', ['styles', 'scripts', 'images', 'fonts', 'videos']);
+gulp.task('default', ['html', 'fonts', 'images', 'scripts', 'styles', 'videos']);
 
 gulp.task('release', ['set-release-state', 'clean', 'default']);

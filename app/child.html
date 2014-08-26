@@ -1,0 +1,14 @@
+{% set title = 'Hello world!' %}
+{% set items = [{ title: "foo", id: 1 }, { title: "bar", id: 2}] %}
+{% extends "./app/parent.html" %}
+
+{% block title %}This is title!{% endblock %}
+{% block text %}This is text!{% endblock %}
+
+{% block content %}
+<section>
+    <ul>{% for item in items %}
+        <li>{{ item.title }}</li>{% endfor %}
+    </ul>
+</section>
+{% endblock %}
