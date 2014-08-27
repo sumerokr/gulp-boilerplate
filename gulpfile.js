@@ -14,8 +14,8 @@ var streamify = require('gulp-streamify');
 var imagemin = require('gulp-imagemin');
 var changed = require('gulp-changed');
 var del = require('del');
-var nunjucks = require('gulp-nunjucks');
 var nunjucksRender = require('gulp-nunjucks-render');
+var prettify = require('gulp-prettify');
 
 var statuses = {
     isRelease: false,
@@ -23,22 +23,16 @@ var statuses = {
 };
 
 var paths = {
-    app: './app/',
+    appViews: './app/views/',
     appStatic: './app/static/',
     dist: './dist/',
     distStatic: './dist/static/'
 };
 
 gulp.task('html', function () {
-    gulp.src(paths.app + '**/*.html')
-        .pipe(nunjucks())
-        .pipe(gulp.dest(paths.dist))
-        .pipe(gulpif(statuses.isWatch, reload({ stream: true })));
-});
-
-gulp.task('nunj', function () {
-    gulp.src(paths.app + 'child.html')
+    gulp.src(paths.appViews + '*.html')
         .pipe(nunjucksRender())
+        .pipe(prettify({ indent_size: 4 }))
         .pipe(gulp.dest(paths.dist))
         .pipe(gulpif(statuses.isWatch, reload({ stream: true })));
 });
@@ -114,14 +108,14 @@ gulp.task('clean', function () {
 });
 
 gulp.task('watch', ['default', 'browser-sync'], function () {
-    gulp.watch(paths.app + '**/*.html', ['html']);
+    gulp.watch(paths.appViews + '**/*.html', ['html']);
     gulp.watch(paths.appStatic + 'styles/**/*.less', ['styles']);
     gulp.watch(paths.appStatic + 'scripts/**/*.js', ['scripts']);
     gulp.watch(paths.appStatic + 'images/**/*.*', ['images']);
 });
 
 gulp.task('browser-sync', ['default'], function () {
-    browserSync({ server: { baseDir: paths.app } });
+    browserSync({ server: { baseDir: paths.dist } });
     statuses.isWatch = true;
 });
 
