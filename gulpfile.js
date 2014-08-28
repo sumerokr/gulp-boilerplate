@@ -14,8 +14,12 @@ var streamify = require('gulp-streamify');
 var imagemin = require('gulp-imagemin');
 var changed = require('gulp-changed');
 var del = require('del');
-var nunjucksRender = require('gulp-nunjucks-render');
+// var nunjucksRender = require('gulp-nunjucks-render');
 var prettify = require('gulp-prettify');
+// var fs = require('fs');
+var data = require('gulp-data');
+var path = require('path');
+var swig = require('gulp-swig');
 
 var statuses = {
     isRelease: false,
@@ -23,6 +27,7 @@ var statuses = {
 };
 
 var paths = {
+    appData: './app/data/',
     appViews: './app/views/',
     appStatic: './app/static/',
     dist: './dist/',
@@ -30,8 +35,17 @@ var paths = {
 };
 
 gulp.task('html', function () {
-    gulp.src(paths.appViews + '*.html')
-        .pipe(nunjucksRender())
+    gulp.src(paths.appViews + 'index.html')
+        .pipe(data(function (file, callback) {
+            var fileName = path.basename(file.path).slice(0, -5);
+            try {
+                var jsonData = require('./app/data/' + fileName + '.json');
+                return callback(undefined, jsonData);
+            } catch(e) {
+                return callback();
+            }
+        }))
+        .pipe(swig())
         .pipe(prettify({ indent_size: 4 }))
         .pipe(gulp.dest(paths.dist))
         .pipe(gulpif(statuses.isWatch, reload({ stream: true })));
