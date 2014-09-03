@@ -14,9 +14,7 @@ var streamify = require('gulp-streamify');
 var imagemin = require('gulp-imagemin');
 var changed = require('gulp-changed');
 var del = require('del');
-// var nunjucksRender = require('gulp-nunjucks-render');
 var prettify = require('gulp-prettify');
-// var fs = require('fs');
 var data = require('gulp-data');
 var path = require('path');
 var swig = require('gulp-swig');
@@ -28,25 +26,31 @@ var statuses = {
 
 var paths = {
     appData: './app/data/',
+    appLayouts: './app/layouts/',
+    appPartials: './app/partials/',
     appViews: './app/views/',
     appStatic: './app/static/',
     dist: './dist/',
     distStatic: './dist/static/'
 };
 
+function getJsonData(file, next) {
+    var fileNameFull = path.basename(file.path);
+    var fileExt = path.extname(file.path);
+    var fileName = fileNameFull.slice(0, -fileExt.length);
+    try {
+        var jsonData = require('./app/data/' + fileName + '.json');
+        return next(undefined, jsonData);
+    } catch(e) {
+        return next();
+    }
+}
+
 gulp.task('html', function () {
-    gulp.src(paths.appViews + 'index.html')
-        .pipe(data(function (file, callback) {
-            var fileName = path.basename(file.path).slice(0, -5);
-            try {
-                var jsonData = require('./app/data/' + fileName + '.json');
-                return callback(undefined, jsonData);
-            } catch(e) {
-                return callback();
-            }
-        }))
-        .pipe(swig())
-        .pipe(prettify({ indent_size: 4 }))
+    gulp.src(paths.appViews + '**/*.html')
+        .pipe(data(getJsonData))
+        .pipe(swig({ defaults: { cache: false } }))
+        // .pipe(prettify({ indent_size: 4 }))
         .pipe(gulp.dest(paths.dist))
         .pipe(gulpif(statuses.isWatch, reload({ stream: true })));
 });
@@ -122,7 +126,11 @@ gulp.task('clean', function () {
 });
 
 gulp.task('watch', ['default', 'browser-sync'], function () {
-    gulp.watch(paths.appViews + '**/*.html', ['html']);
+    gulp.watch([
+        paths.appViews + '**/*.html',
+        paths.appLayouts + '**/*.html',
+        paths.appPartials + '**/*.html'
+    ], ['html']);
     gulp.watch(paths.appStatic + 'styles/**/*.less', ['styles']);
     gulp.watch(paths.appStatic + 'scripts/**/*.js', ['scripts']);
     gulp.watch(paths.appStatic + 'images/**/*.*', ['images']);

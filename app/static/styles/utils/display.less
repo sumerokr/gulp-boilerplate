@@ -1,0 +1,50 @@
+/**
+ * Display-type utilities
+ */
+
+.u-hidden {
+    display: none;
+}
+
+.u-invisible {
+    visibility: hidden;
+}
+
+/**
+ * Completely remove from the flow but leave available to screen readers.
+ */
+
+.u-hiddenVisually {
+    position: absolute;
+    overflow: hidden;
+    margin: -1px;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    border: 0;
+    clip: rect(1px, 1px, 1px, 1px);
+}
+
+.u-displayBlock {
+    display: block;
+}
+
+.u-displayInline {
+    display: inline;
+}
+
+.u-displayInlineBlock {
+    display: inline-block;
+}
+
+.u-displayTable {
+    display: table;
+}
+
+.u-displayTableRow {
+    display: table-row;
+}
+
+.u-displayTableCell {
+    display: table-cell;
+}
