@@ -9,5 +9,5 @@ npm install
 
 ## Сборка
 gulp - собирает dist/  
-gulp watch - наблюдает за app/ и собирает в dist/
+gulp watch - наблюдает за app/ и собирает в dist/  
 gulp release - собирает и минифицирует в dist/
