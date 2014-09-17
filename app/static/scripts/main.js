@@ -1,5 +1,5 @@
-var tvilApp = require('./tvilApp');
-var mp = require('./mp');
+(function () {
+    'use strict';
 
-console.log(mp(4));
-tvilApp.init();
+    // code
+})();

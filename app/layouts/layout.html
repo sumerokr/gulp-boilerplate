@@ -3,10 +3,7 @@
     {% include "../partials/head.html" %}
     <body>
         <h1>{{ title }}</h1>
-        <div>
-            {% block content %}{% endblock %}
-        </div>
-        <p><img src="static/images/apple-touch-icon-precomposed.png" width="152" height="152" alt=""></p>
+        {% block content %}{% endblock %}
         <script src="static/scripts/main.js"></script>
     </body>
 </html>

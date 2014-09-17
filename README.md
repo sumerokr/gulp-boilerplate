@@ -8,9 +8,6 @@ npm install -g gulp
 npm install  
 
 ## Сборка
-layout-build - собирает layout/  
-layout-watch - наблюдает за layout/staticfiles/_src/
-
-project-build - собирает project/  
-project-release - собирает минифицированную версию в project/  
-project-watch - наблюдает за project/staticfiles/_src/  
+gulp - собирает dist/  
+gulp watch - наблюдает за app/ и собирает в dist/
+gulp release - собирает и минифицирует в dist/

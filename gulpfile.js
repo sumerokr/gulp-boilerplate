@@ -3,21 +3,19 @@ var less = require('gulp-less');
 var autoprefixer = require('gulp-autoprefixer');
 var minifyCSS = require('gulp-minify-css');
 var browserSync = require('browser-sync');
-var reload = browserSync.reload;
 var gulpif = require('gulp-if');
 var rename = require('gulp-rename');
 var lazypipe = require('lazypipe');
-var browserify = require('browserify');
-var source = require('vinyl-source-stream');
 var uglify = require('gulp-uglify');
-var streamify = require('gulp-streamify');
 var imagemin = require('gulp-imagemin');
 var changed = require('gulp-changed');
 var del = require('del');
-var prettify = require('gulp-prettify');
 var data = require('gulp-data');
 var path = require('path');
 var swig = require('gulp-swig');
+var sourcemaps = require('gulp-sourcemaps');
+var gulpFilter = require('gulp-filter');
+var concat = require('gulp-concat');
 
 var statuses = {
     isRelease: false,
@@ -50,9 +48,7 @@ gulp.task('html', function () {
     gulp.src(paths.appViews + '**/*.html')
         .pipe(data(getJsonData))
         .pipe(swig({ defaults: { cache: false } }))
-        // .pipe(prettify({ indent_size: 4 }))
-        .pipe(gulp.dest(paths.dist))
-        .pipe(gulpif(statuses.isWatch, reload({ stream: true })));
+        .pipe(gulp.dest(paths.dist));
 });
 
 gulp.task('fonts', function () {
@@ -66,7 +62,7 @@ gulp.task('images', function () {
         .pipe(changed, paths.distStatic + 'images/')
         .pipe(gulp.dest, paths.distStatic + 'images/')
         .pipe(function () {
-            return gulpif(statuses.isWatch, reload({ stream: true }));
+            return gulpif(statuses.isWatch, browserSync.reload({ stream: true }));
         });
 
     var releasePipe = lazypipe()
@@ -78,27 +74,27 @@ gulp.task('images', function () {
 });
 
 gulp.task('scripts', function () {
-    var devPipe = lazypipe()
-        .pipe(function () {
-            return gulpif(statuses.isWatch, reload({ stream: true }));
-        });
-
     var releasePipe = lazypipe()
-        .pipe(streamify, uglify())
+        .pipe(uglify)
         .pipe(rename, { suffix: '.min' })
         .pipe(gulp.dest, paths.distStatic + 'scripts/');
 
-    return browserify(paths.appStatic + 'scripts/main.js')
-        .bundle()
-        .pipe(source('main.js'))
+    return gulp.src([
+            paths.appStatic + 'scripts/vendor/jquery.js'
+            , paths.appStatic + 'scripts/main.js'
+        ])
+        .pipe(sourcemaps.init())
+        .pipe(concat('main.js'))
+        .pipe(sourcemaps.write('./'))
         .pipe(gulp.dest(paths.distStatic + 'scripts/'))
-        .pipe(gulpif(statuses.isRelease, releasePipe(), devPipe()));
+        .pipe(gulpFilter('**/*.js'))
+        .pipe(gulpif(statuses.isRelease, releasePipe()));
 });
 
 gulp.task('styles', function () {
     var devPipe = lazypipe()
         .pipe(function () {
-            return gulpif(statuses.isWatch, reload({ stream: true }));
+            return gulpif(statuses.isWatch, browserSync.reload({ stream: true }));
         });
 
     var releasePipe = lazypipe()
@@ -107,11 +103,14 @@ gulp.task('styles', function () {
         .pipe(gulp.dest, paths.distStatic + 'styles/');
 
     return gulp.src(paths.appStatic + 'styles/main.less')
+        // https://github.com/sindresorhus/gulp-autoprefixer/issues/2
+        // .pipe(sourcemaps.init())
         .pipe(less())
-        // опция отключения каскадного форматирования не работает в версии 0.0.8
-        // issue - https://github.com/Metrime/gulp-autoprefixer/issues/25
         .pipe(autoprefixer({ cascade: false }))
+        // // https://github.com/sindresorhus/gulp-autoprefixer/issues/2
+        // .pipe(sourcemaps.write('./'))
         .pipe(gulp.dest(paths.distStatic + 'styles/'))
+        .pipe(gulpFilter('**/*.css'))
         .pipe(gulpif(statuses.isRelease, releasePipe(), devPipe()));
 });
 
@@ -125,14 +124,14 @@ gulp.task('clean', function () {
     del.sync([paths.dist]);
 });
 
-gulp.task('watch', ['default', 'browser-sync'], function () {
+gulp.task('watch', ['browser-sync'], function () {
     gulp.watch([
         paths.appViews + '**/*.html',
         paths.appLayouts + '**/*.html',
         paths.appPartials + '**/*.html'
-    ], ['html']);
-    gulp.watch(paths.appStatic + 'styles/**/*.less', ['styles']);
-    gulp.watch(paths.appStatic + 'scripts/**/*.js', ['scripts']);
+    ], ['html', browserSync.reload]);
+    gulp.watch(paths.appStatic + 'styles/**/*.{less,css}', ['styles']);
+    gulp.watch(paths.appStatic + 'scripts/**/*.js', ['scripts', browserSync.reload]);
     gulp.watch(paths.appStatic + 'images/**/*.*', ['images']);
 });
 
